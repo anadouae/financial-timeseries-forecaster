@@ -1,0 +1,29 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      FTS_MODEL_PATH: /app/artifacts/best_model.pt
+      FTS_DEVICE: cpu
+      # Set in host .env (see .env.example). Empty disables auth — do not use in prod.
+      FTS_API_KEY: ${FTS_API_KEY:-}
+    volumes:
+      - ./artifacts:/app/artifacts
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.1
+    profiles: ["mlflow"]
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+
+volumes:
+  mlflow_data:
